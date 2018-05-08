@@ -25,11 +25,11 @@ parameters:
 ### SERVICE ####
 - name: SERVICE_PREFIX
   displayName: Service Prefix
-  value: openeo-users
+  value: openeo
   required: true
 - name: GIT_URI
   displayName: Git URI
-  value: https://github.com/Open-EO/openeo-openshift-driver.git
+  value: https://github.com/gunnarbusch/openeo-test
   required: true
 - name: GIT_DIR
   displayName: Git Reference
@@ -41,18 +41,12 @@ parameters:
   required: true
 - name: SECRET_BCRYPT
   displayName: BCrypt Secret
-  description: Secret for encrypting/decrypting passwords
   from: "[a-zA-Z0-9]{16}"
   generate: expression
   required: true
 - name: MEMORY_LIMIT_SERVICE
   displayName: Memory Limit
-  description: Maximum amount of memory the services can use.
   value: 256Mi
-  required: true
-- name: SERVICE_PORT
-  displayName: Postgres Port
-  value: "5432"
   required: true
 
 ### DATABASE ####
@@ -61,7 +55,6 @@ parameters:
   value: '9.5'
 - name: MEMORY_LIMIT_POSTGRES
   displayName: Memory Limit
-  description: Maximum amount of memory Postgres can use.
   value: 256Mi
   required: true
 - name: DB_USER
@@ -82,9 +75,12 @@ parameters:
   displayName: PostgreSQL Database Name
   value: users
   required: true
+- name: STORAGE_CLASS
+  displayName: Storage Class Name
+  value: storage-write
+  required: true
 - name: VOLUME_CAPACITY_POSTGRES
   displayName: Volume Capacity
-  description: Volume space available for Postgres data, e.g. 512Mi, 2Gi.
   value: 5Gi
   required: true
 
@@ -109,7 +105,7 @@ objects:
       git:
         uri: "${GIT_URI}"
         ref: "${GIT_REF}"
-      contextDir: "services/users"
+      contextDir: "users"
     strategy:
       dockerStrategy:
         dockerfilePath: Dockerfile
@@ -161,20 +157,18 @@ objects:
         - name: "${SERVICE_PREFIX}-users"
           image: "${SERVICE_PREFIX}-users"
           ports:
-          - containerPort: "${SERVICE_PORT}"
+          - containerPort: 3000
             protocol: TCP
           readinessProbe:
             httpGet:
               path: "/health"
-              port: "${SERVICE_PORT}"
+              port: 3000
           livenessProbe:
             timeoutSeconds: 1
             initialDelaySeconds: 30
             tcpSocket:
-              port: "${SERVICE_PORT}"
+              port: 3000
           env:
-          - name: SERVICE_SETTINGS
-            value: "${SERVICE_SETTINGS}"
           - name: SECRET_BCRYPT
             value: "${SECRET_BCRYPT}"
           - name: DB_HOST
@@ -294,7 +288,7 @@ objects:
             timeoutSeconds: 1
             initialDelaySeconds: 30
             tcpSocket:
-              port: "${DB_PORT}"
+              port: 5432
           env:
           - name: POSTGRESQL_USER
             valueFrom:
@@ -336,8 +330,8 @@ objects:
     ports:
     - name: postgresql
       protocol: TCP
-      port: "${DB_PORT}"
-      targetPort: "${DB_PORT}"
+      port: 5432
+      targetPort: 5432
     selector:
       name: "${SERVICE_PREFIX}-users-db"
 

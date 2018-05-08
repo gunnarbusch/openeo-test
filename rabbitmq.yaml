@@ -42,10 +42,6 @@ parameters:
   displayName: Postgres Port
   value: "5672"
   required: true
-- name: RABBITMQ_DEFAULT_HTTP_PORT
-  displayName: Postgres Port
-  value: "15672"
-  required: true
 
 objects:
 - kind: Secret
@@ -55,7 +51,7 @@ objects:
   stringData:
     rabbitmq-user: "${RABBITMQ_DEFAULT_USER}"
     rabbitmq-password: "${RABBITMQ_DEFAULT_PASS}"
-    rabbitmq-port: "${RABBITMQ_DEFAULT_PORT}"
+    rabbitmq-port: ${RABBITMQ_DEFAULT_PORT}
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -80,19 +76,19 @@ objects:
           image: rabbitmq:3-management
           ports:
           - name: rabbitmq
-            containerPort: "${RABBITMQ_DEFAULT_PORT}"
+            containerPort: 5672
             protocol: TCP
           - name: rabbitmq-http
-            containerPort: "${RABBITMQ_DEFAULT_HTTP_PORT}"
+            containerPort: 15672
             protocol: TCP
           readinessProbe:
             tcpSocket:
-              port: "${RABBITMQ_DEFAULT_PORT}"
+              port: 5672
             initialDelaySeconds: 5
             timeoutSeconds: 5
           livenessProbe:
             tcpSocket:
-              port: "${RABBITMQ_DEFAULT_PORT}"
+              port: 5672
             initialDelaySeconds: 5
             timeoutSeconds: 5
           env:
@@ -117,10 +113,10 @@ objects:
   spec:
     ports:
     - name: rabbitmq
-      port: "${RABBITMQ_DEFAULT_PORT}"
+      port: 5672
       targetPort: rabbitmq
     - name: rabbitmq-http
-      port: "${RABBITMQ_DEFAULT_HTTP_PORT}"
+      port: 15672
       targetPort: rabbitmq-http
     selector:
       name: "${SERVICE_PREFIX}-rabbitmq"
