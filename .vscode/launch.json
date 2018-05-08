@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Users",
+            "type": "python",
+            "request": "launch",
+            "pythonPath": "C:\\Users\\Gunnar\\Miniconda3\\envs\\nameko\\python.exe",
+            "program": "${workspaceFolder}\\users\\debug.py",
+            "args": [
+                "run",
+                "users.src.service",
+                "--config",
+                "./users/config.yaml"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

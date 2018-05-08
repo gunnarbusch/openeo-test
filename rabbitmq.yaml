@@ -1,0 +1,146 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: openeo-rabbitmq
+  annotations:
+    openshift.io/display-name: openeo-rabbitmq
+    description: >-
+      The templates instantiates the users service for openEO on OpenShift Origin.
+    openshift.io/long-description: >-
+      Multiple services are setup to provide the OpenEO capabilities. For setting up a
+      OpenShift cluster and configure persitant storage please read the OpenShift documentation.
+      Fur further information on OpenEO please have a look at http://openeo.org
+    tags: openeo, openshift, python, flask
+    iconClass: icon-python
+labels:
+  application: openeo-rabbitmq
+  provider: openeo
+  project: openeo
+  app: openeo-rabbitmq
+  version: 0.0.1
+message: "The openEO template will be instantiated." 
+
+parameters:
+- name: SERVICE_PREFIX
+  displayName: Service Prefix
+  value: openeo
+  required: true
+- name: RABBITMQ_DEFAULT_USER
+  displayName: RabbitMQ default user
+  description: Username of RabbitMQ default user
+  generate: expression
+  from: user[A-Z0-9]{3}
+  required: true
+- name: RABBITMQ_DEFAULT_PASS
+  displayName: RabbitMQ default password
+  description: Password of RabbitMQ default user
+  generate: expression
+  from: "[a-zA-Z0-9]{16}"
+  required: true
+- name: RABBITMQ_DEFAULT_PORT
+  displayName: Postgres Port
+  value: "5672"
+  required: true
+- name: RABBITMQ_DEFAULT_HTTP_PORT
+  displayName: Postgres Port
+  value: "15672"
+  required: true
+
+objects:
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: "${SERVICE_PREFIX}-rabbitmq"
+  stringData:
+    rabbitmq-user: "${RABBITMQ_DEFAULT_USER}"
+    rabbitmq-password: "${RABBITMQ_DEFAULT_PASS}"
+    rabbitmq-port: "${RABBITMQ_DEFAULT_PORT}"
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${SERVICE_PREFIX}-rabbitmq"
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: 'true'
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: "${SERVICE_PREFIX}-rabbitmq"
+    template:
+      metadata:
+        labels:
+          name: "${SERVICE_PREFIX}-rabbitmq"
+      spec:
+        containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+          - name: rabbitmq
+            containerPort: "${RABBITMQ_DEFAULT_PORT}"
+            protocol: TCP
+          - name: rabbitmq-http
+            containerPort: "${RABBITMQ_DEFAULT_HTTP_PORT}"
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: "${RABBITMQ_DEFAULT_PORT}"
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: "${RABBITMQ_DEFAULT_PORT}"
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          env:
+          - name: RABBITMQ_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: "${SERVICE_PREFIX}-rabbitmq"
+                key: rabbitmq-user
+          - name: RABBITMQ_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: "${SERVICE_PREFIX}-rabbitmq"
+                key: rabbitmq-password
+        restartPolicy: Always
+        dnsPolicy: ClusterFirst
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${SERVICE_PREFIX}-rabbitmq"
+    annotations:
+      description: The service port
+  spec:
+    ports:
+    - name: rabbitmq
+      port: "${RABBITMQ_DEFAULT_PORT}"
+      targetPort: rabbitmq
+    - name: rabbitmq-http
+      port: "${RABBITMQ_DEFAULT_HTTP_PORT}"
+      targetPort: rabbitmq-http
+    selector:
+      name: "${SERVICE_PREFIX}-rabbitmq"
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${SERVICE_PREFIX}-rabbitmq"
+  spec:
+    to:
+      kind: Service
+      name: "${SERVICE_PREFIX}-rabbitmq"
+    port:
+      targetPort: rabbitmq
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${SERVICE_PREFIX}-rabbitmq-http"
+  spec:
+    to:
+      kind: Service
+      name: "${SERVICE_PREFIX}-rabbitmq"
+    port:
+      targetPort: rabbitmq-http
