@@ -1,7 +1,7 @@
 DB_URIS:
     "users:Base": postgresql://${DB_USER:postgres}:${DB_PASSWORD:password}@${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orders}
 
-AMQP_URI: pyamqp://${RABBIT_USER:guest}:${RABBIT_PASSWORD:guest}@${RABBIT_HOST:localhost}:${RABBIT_PORT:5672}
+AMQP_URI: pyamqp://userL1L:Rp6G3ChBTYAhealF@openeo-rabbitmq:5672
 rpc_exchange: 'nameko-rpc'
 max_workers: 10
 parent_calls_tracked: 10
