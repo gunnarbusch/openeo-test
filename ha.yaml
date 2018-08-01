@@ -1,6 +1,7 @@
 --- 
-data_id: 
-  description: "Unique identifier for EO datasets. MUST match the specified pattern."
-  example: MOD18Q1222222asd
-  pattern: "^[A-Za-z0-9_\\-\\.~\\/]+$"
-  type: string
+specs:
+  data_id: 
+    description: "Unique identifier for EO datasets. MUST match the specified pattern."
+    example: MOD18Q1222222asd
+    pattern: "^[A-Za-z0-9_\\-\\.~\\/]+$"
+    type: string
