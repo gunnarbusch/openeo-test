@@ -1,5 +1,6 @@
-data_id:
-  type: string
-  description: Unique identifier for EO datasets. MUST match the specified pattern.
-  pattern: '^[A-Za-z0-9_\-\.~\/]+$'
+--- 
+data_id: 
+  description: "Unique identifier for EO datasets. MUST match the specified pattern."
   example: MOD18Q1
+  pattern: "^[A-Za-z0-9_\\-\\.~\\/]+$"
+  type: string
